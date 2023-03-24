@@ -16,7 +16,7 @@ public class SpriteMachine : Singleton<SpriteMachine>
     public override void Awake()
     {
         base.Awake();
-        blocks = Resources.LoadAll<Sprite>("Sprites/Block");
+        blocks = Resources.LoadAll<Sprite>("Sprites/NewBlock");
         itemSprites = blocks;
     }
 }

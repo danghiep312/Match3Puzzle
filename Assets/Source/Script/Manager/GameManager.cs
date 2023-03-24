@@ -34,6 +34,8 @@ public class GameManager : Singleton<GameManager>
     public bool vibrationOn;
     public bool tutorialComplete;
     public GameObject tutorial;
+
+    public ParticleSystem combineParticle;
  
     private void Start()
     {
@@ -216,6 +218,12 @@ public class GameManager : Singleton<GameManager>
     {
         Common.Log(Application.persistentDataPath);
         Process.Start(Application.persistentDataPath);
+    }
+
+    public void PlayCombineParticles(Vector3 pos)
+    {
+        combineParticle.transform.position = pos;
+        combineParticle.Play();
     }
     
 

@@ -63,7 +63,6 @@ public class WinPanel : MonoBehaviour
     {
         rt.DOAnchorPos(Vector2.right * 2000f, 0.5f).SetEase(Ease.InBack).OnComplete(() =>
         {
-            
             transform.parent.gameObject.SetActive(false);
         });
     }

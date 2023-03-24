@@ -14,20 +14,22 @@ public class Tile : MonoBehaviour
     public bool isSelected;
     public bool inQueue;
 
+    public bool isMoving;
     public bool isCombining;
     public bool isLocking;
     public SpriteRenderer offsetSr;
     public SpriteRenderer sr;
     public Collider2D col;
-
+    
     
     public int originalSortingOrder;
     public Vector3 pivotPosInBoard;
     [ShowInInspector]
     public Pos posInBoard;
-    
+
+    [SerializeField] private AnimationCurve curve;
     public static Vector3 ORIGINAL_SCALE;
-    public static float TIME_TO_REARRANGE = 0.1f;
+    public static float TIME_TO_REARRANGE = 0.3f;
     [ShowInInspector]
     public static float TIME_TO_MOVE_QUEUE = 0.6f;
     
@@ -66,15 +68,7 @@ public class Tile : MonoBehaviour
         {
             offsetSr.enabled = false;
         }
-
-        // if (Input.GetMouseButtonDown(0))
-        // {
-        //     var colliderHit = Physics2D.OverlapPointAll(Camera.main.ScreenToWorldPoint(Input.mousePosition));
-        //     if (colliderHit.Contains(col))
-        //     {
-        //         Pressed();
-        //     }
-        // }
+        
 
         if (!GameManager.Instance.AcceptInput) return;
         int i = 0;
@@ -132,11 +126,12 @@ public class Tile : MonoBehaviour
 
     public void CombineProcess(int index) // -1 or 1
     {
-        var targetPos = transform.position + Vector3.right * -index;
+        var targetPos = transform.localPosition + Vector3.right * -index;
         transform.DOLocalMove(Vector3.right * (index * 0.35f), 0.1f).SetEase(Ease.OutQuad).OnComplete(() =>
         {
-            transform.DOLocalMove(targetPos, 0.1f).SetEase(Ease.InQuad).OnComplete(() =>
+            transform.DOLocalMove(targetPos, 0.15f).SetEase(Ease.InQuad).OnComplete(() =>
             {
+                if (index == 0) GameManager.Instance.PlayCombineParticles(transform.position);
                 this.PostEvent(EventID.CombineComplete, gameObject);
                 ObjectPooler.Instance.ReleaseObject(gameObject);
             });
@@ -145,10 +140,10 @@ public class Tile : MonoBehaviour
     
     public void Pressed()
     {
-        if (inQueue || !GameManager.Instance.AcceptInput) return;
+        if (inQueue || !GameManager.Instance.AcceptInput || isMoving) return;
         if (isLocking)
         {
-            Common.Log("Locking");
+            //Common.Log("Locking");
             return;
         }
 
@@ -196,18 +191,25 @@ public class Tile : MonoBehaviour
     {
         if (isSelected)
         {
+            Common.Log(gameObject.name);
             isSelected = false;
+            isMoving = true;
             transform.DOScale(Vector3.one, TIME_TO_MOVE_QUEUE).SetUpdate(true);
-            // transform.DOLocalMove(Vector3.zero, TIME_TO_MOVE_QUEUE).SetEase(Ease.OutExpo).SetUpdate(true).OnComplete(() =>
+            // // transform.DOLocalMove(Vector3.zero, TIME_TO_MOVE_QUEUE).SetEase(Ease.OutExpo).SetUpdate(true).OnComplete(() =>
+            // // {
+            // //     inQueue = true;
+            // // });
+            // transform.DOLocalJump(Vector3.zero, 1, 1, TIME_TO_MOVE_QUEUE).OnComplete(() =>
             // {
             //     inQueue = true;
             // });
-            transform.DOLocalJump(Vector3.zero, 4f, 1, TIME_TO_MOVE_QUEUE).OnComplete(() =>
+
+            transform.DOLocalMoveX(0, TIME_TO_MOVE_QUEUE).SetEase(Ease.OutQuad);
+            transform.DOLocalMoveY(0, TIME_TO_MOVE_QUEUE).SetEase(curve).OnComplete(() =>
             {
                 inQueue = true;
             });
         }
-        
     }
 
     private void OnCollisionStay2D(Collision2D collision)
@@ -222,6 +224,7 @@ public class Tile : MonoBehaviour
         isSelected = false;
         inQueue = false;
         isCombining = false;
+        isMoving = false;
         transform.localScale = Vector3.one;
         sr.color = Color.white;
     }
@@ -254,7 +257,11 @@ public class Tile : MonoBehaviour
             transform.DOKill();
         }
         MoveToPos(pivotPosInBoard);
-        transform.DOScale(ORIGINAL_SCALE, .1f).SetEase(Ease.OutExpo);
+        isMoving = true;
+        transform.DOScale(ORIGINAL_SCALE, .1f).SetEase(Ease.OutExpo).OnComplete(() =>
+        {
+            isMoving = false;
+        });
         inQueue = false;
         sr.sortingOrder = originalSortingOrder;
     }

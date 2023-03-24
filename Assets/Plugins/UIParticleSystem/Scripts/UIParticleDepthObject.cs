@@ -415,7 +415,7 @@ public class UIParticleDepthObject : MonoBehaviour
 
 		Vector4 spriteOuterUv = DataUtility.GetOuterUV(sprite);
 		Vector4 spriteInnerUV = DataUtility.GetInnerUV(sprite);
-		//Vector4 spritePadding = DataUtility.GetPadding(sprite);
+		Vector4 spritePadding = DataUtility.GetPadding(sprite);
 		Vector4 spriteBorder = sprite.border * particleCanvas.Canvas.referencePixelsPerUnit / sprite.pixelsPerUnit;
 
 		bool horizontalSplit = newRectSize.x > spriteBorder.x + spriteBorder.z;

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Profiling;
+using UnityEngine.Rendering;
 
 [ExecuteInEditMode, RequireComponent(typeof(Canvas))]
 public class UIParticleCanvas : MonoBehaviour
@@ -34,14 +35,16 @@ public class UIParticleCanvas : MonoBehaviour
         SetDirty();
         Trans = transform;
         Camera.onPreRender += OnCameraPreRender;
-        //Camera.onPostRender += OnCameraPostRender;
-    }
+		RenderPipelineManager.beginCameraRendering += OnCameraPreRender;
+		//Camera.onPostRender += OnCameraPostRender;
+	}
 
     protected void OnDisable()
     {
         Camera.onPreRender -= OnCameraPreRender;
-        //Camera.onPostRender -= OnCameraPostRender;
-    }
+		RenderPipelineManager.beginCameraRendering -= OnCameraPreRender;
+		//Camera.onPostRender -= OnCameraPostRender;
+	}
 
     protected void Update()
     {
@@ -132,7 +135,6 @@ public class UIParticleCanvas : MonoBehaviour
         maskCamera.clearFlags = CameraClearFlags.Color;
         maskCamera.backgroundColor = new Color(1f, 0f, 0f, 0f);
         maskCamera.targetTexture = mask;
-		maskCamera.rect = new Rect(0, 0, 1, 1);
 
         for(int i = 0; i < depthObjects.Count; i++)
         {
@@ -162,7 +164,7 @@ public class UIParticleCanvas : MonoBehaviour
     private void RefreshMask()
     {
         Profiler.BeginSample("Refresh UI Particle Canvas Mask");
-        if (mask == null || maskCamera == null)
+        if (mask == null)
             Reinitialize();
 
         maskCamera.enabled = true;
@@ -193,6 +195,11 @@ public class UIParticleCanvas : MonoBehaviour
     {
         return y.transform.position.z.CompareTo(x.transform.position.z);
     }
+
+	private void OnCameraPreRender(ScriptableRenderContext ctx, Camera cam)
+	{
+		OnCameraPreRender(cam);
+	}
 
     private void OnCameraPreRender(Camera cam)
     {

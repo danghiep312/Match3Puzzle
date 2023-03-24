@@ -209,7 +209,7 @@ public class QueueZone : MonoBehaviour
                 var index = GetIndexOfTileInQueue(tile);
                 // TODO: reformat
                 var pos = Vector3.right * (index * 1f - 3.5f) + Vector3.up * 0.1f;
-                seat.transform.DOLocalMove(pos, Tile.TIME_TO_REARRANGE).SetEase(Ease.OutQuad);
+                seat.transform.DOLocalMove(pos, Tile.TIME_TO_REARRANGE).SetEase(Ease.OutSine);
             }
             
         }

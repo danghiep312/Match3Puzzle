@@ -54,27 +54,3 @@ Version 1.24
 
 Version 1.25
 -Support for Unity 2019.3
-
-Version 1.30
--Beta support for URP at Unity 2019.3
-
-Version 1.31
--Support for URP at Unity 2019.3+
--Support for Unity 2020.x
--Closing support for Unity 2017.x
-
-Version 1.32
--fixed rare error on missing mask camera
-
-Version 1.33
--support for Unity 2021.x
-
-Version 1.34
--fixed Destroy warnings in newer versions on animation update
-
-Version 1.35
--closing support for Unity 2018
--fixes errors for URP and destroying objects by physics
-
-Version 1.36 
--fixed issue with clipping when view rect of camera is non-standard
