@@ -36,7 +36,7 @@ public class Tutorial : MonoBehaviour
 
     private void OnPlayGame(int level)
     {
-        if (level > 1 || GameManager.Instance.tutorialComplete) return;
+        if (level > 1 || GameManager.Instance.tutorialComplete || MapGenerator.Instance.testing) return;
        
         tilesForTutorial = MapGenerator.Instance.PrepareForTutorial();
         

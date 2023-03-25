@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Security;
 using Cysharp.Threading.Tasks;
 using DG.Tweening;
@@ -35,10 +37,11 @@ public class GameManager : Singleton<GameManager>
     public bool tutorialComplete;
     public GameObject tutorial;
 
-    public ParticleSystem combineParticle;
+    public List<ParticleSystem> combineParticle;
  
     private void Start()
     {
+        combineParticle = new List<ParticleSystem>();
         Application.targetFrameRate = 60;
         Camera camera = Camera.main;
         float halfHeight = camera.orthographicSize;
@@ -118,6 +121,8 @@ public class GameManager : Singleton<GameManager>
     [Button("Play Game")]
     public void PlayGame(int level)
     {
+        if (MapGenerator.Instance.testing) return;
+        foreach (var ps in combineParticle) ps.gameObject.SetActive(true);
         PlayerPrefs.DeleteKey("LastTime");
         Debug.Log("Play " + level);
         ObjectPooler.Instance.ReleaseAll();
@@ -175,21 +180,18 @@ public class GameManager : Singleton<GameManager>
         Playing = false;
     }
 
-    [Button("Test save")]
-    public void Test(bool hasFocus)
-    {
-        MapGenerator.Instance.SaveCurrentState();
-    }
-
     private void OnApplicationFocus(bool hasFocus)
     {
-        if (Playing) MapGenerator.Instance.SaveCurrentState();
+        if (Playing && tutorialComplete)
+        {
+            MapGenerator.Instance.SaveCurrentState();
+        }
     }
 
     private void OnApplicationPause(bool pauseStatus)
     {
         Common.Log("Pause");
-        if (Playing) MapGenerator.Instance.SaveCurrentState();
+        if (Playing && tutorialComplete) MapGenerator.Instance.SaveCurrentState();
         if (pauseStatus && Playing)
         {
             var now = DateTime.Now;
@@ -222,8 +224,17 @@ public class GameManager : Singleton<GameManager>
 
     public void PlayCombineParticles(Vector3 pos)
     {
-        combineParticle.transform.position = pos;
-        combineParticle.Play();
+        var parSys = combineParticle.FirstOrDefault(par => !par.isPlaying);
+
+        if (parSys == null)
+        {
+            parSys = ObjectPooler.Instance.Spawn("Boom").GetComponent<ParticleSystem>();
+            combineParticle.Add(parSys);
+        }
+        
+        parSys.gameObject.SetActive(true);
+        parSys.transform.position = pos;
+        parSys.Play();
     }
     
 

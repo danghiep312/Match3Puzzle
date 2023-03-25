@@ -82,11 +82,21 @@ public class Tile : MonoBehaviour
                 var colliderHit = Physics2D.OverlapPointAll(pos);
                 if (colliderHit.Contains(col))
                 {
-                    Pressed();
+                    if (MapGenerator.Instance.testing) Delete();
+                    else
+                        Pressed();
                 }
             }
 
             i++;
+        }
+    }
+
+    private void OnMouseDown()
+    {
+        if (MapGenerator.Instance.testing)
+        {
+            Delete();
         }
     }
 

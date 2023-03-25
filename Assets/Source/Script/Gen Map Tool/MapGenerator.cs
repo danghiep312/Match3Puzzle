@@ -42,12 +42,15 @@ public class MapGenerator : Singleton<MapGenerator>
 
     private void Start()
     {
-        this.RegisterListener(EventID.PlayGame, (param) => PlayGame((int)param));
-        this.RegisterListener(EventID.Spell, (param) => CheckStatusEachTile());
-        this.RegisterListener(EventID.ClickToTile, (param) => OnClickToTile((GameObject)param));
-        this.RegisterListener(EventID.CombineComplete, (param) => OnCombineComplete());
-        this.RegisterListener(EventID.Win, (param) => DeleteSaveFile());
-        this.RegisterListener(EventID.GameOver, (param) => DeleteSaveFile());
+        if (!testing)
+        {
+            this.RegisterListener(EventID.PlayGame, (param) => PlayGame((int)param));
+            this.RegisterListener(EventID.Spell, (param) => CheckStatusEachTile());
+            this.RegisterListener(EventID.ClickToTile, (param) => OnClickToTile((GameObject)param));
+            this.RegisterListener(EventID.CombineComplete, (param) => OnCombineComplete());
+            this.RegisterListener(EventID.Win, (param) => DeleteSaveFile());
+            this.RegisterListener(EventID.GameOver, (param) => DeleteSaveFile());
+        }
         
         
         levelsData = Resources.LoadAll<Level>("Level");
@@ -63,7 +66,7 @@ public class MapGenerator : Singleton<MapGenerator>
             var dis = GetDistanceEachTile();
             map = new GameObject[row, col, high];
             matrixLevel = new int[10, 8, 8];
-            
+            Debug.Log("init");
             dis = 1;
             for (int k = 0; k < high; k++)
             {
@@ -73,9 +76,11 @@ public class MapGenerator : Singleton<MapGenerator>
                     {
                         map[i, j, k] = ObjectPooler.Instance.Spawn("Tile");
                         map[i, j, k].transform.parent = board.transform.GetChild(k);
+                        
                         map[i, j, k].transform.localScale = Vector3.one * dis;
                         map[i, j, k].name = "Tile " + i + " " + j + " " + k;
                         map[i, j, k].GetComponent<Tile>().id = 1;
+                        map[i, j, k].GetComponent<Tile>().posInBoard = new Pos(i, j, k);
                         map[i, j, k].GetComponent<SpriteRenderer>().sortingOrder = sOrder += 2;
                         map[i, j, k].transform.localPosition = new Vector3(
                             -((col * 1f - 1) / 2 - j) * dis + dis / 2 * k,
@@ -89,7 +94,7 @@ public class MapGenerator : Singleton<MapGenerator>
                     }
                 }
             }
-            board.GetComponent<Board>().ArrangeFloor();
+            
         }
     }
 
@@ -463,7 +468,6 @@ public class MapGenerator : Singleton<MapGenerator>
     
     
     #region Status Tile Check Func
-    [Button("Check")]
     public void CheckStatusEachTile()
     {
         if (PlayerPrefs.GetInt("Tutorial", 0) != 1) return;
@@ -521,51 +525,57 @@ public class MapGenerator : Singleton<MapGenerator>
     
     private void ReturnTile(GameObject tile)
     {
-        string[] s = tile.name.Split(' ');
-        int i = int.Parse(s[1]);
-        int j = int.Parse(s[2]);
-        int k = int.Parse(s[3]);
+        var pos = tile.GetComponent<Tile>().posInBoard;
+        var i = pos.x;
+        var j = pos.y;
+        var k = pos.z;
         map[i, j, k] = tile;
+        Debug.Log("Return Tile " + i + " " + j + " " + k + " " + tile.name);
         matrixLevel[i, j, k] = 1;
-        string tmp = "";
-        for (int ii = 0; ii < row; ii++)
-        {
-            for (int jj = 0; jj < col; jj++)
-            {
-                tmp += matrixLevel[ii, jj, 0] + " ";
-            }
-
-            tmp += "\n";
-        }
-        Debug.Log(tmp);
+    }
+    
+    [Button("Check Tile In Map")]
+    public void GetTileInMap(int i, int j, int k)
+    {
+        Debug.Log(map[i, j, k].name);
     }
 
+    [Button("Get Total Tile")]
     public int GetTotalTile()
     {
         int total = 0;
         int tRow = testing ? 10 : row;
         int tCol = testing ? 8 : col;
         int tHigh = testing ? 8 : high;
-        for (int k = 0; k < tHigh; k++)
+        try
         {
-            for (int i = 0; i < tRow; i++)
+            for (int k = 0; k < tHigh; k++)
             {
-                for (int j = 0; j < tCol; j++)
+                for (int i = 0; i < tRow; i++)
                 {
-                    if (i < row && j < col && k < high && map[i, j, k] != null)
+                    for (int j = 0; j < tCol; j++)
                     {
-                        if (matrixLevel[i, j, k] == 0)
+                        //Debug.Log(i + " " + j + " " + k);
+                        if (i < row && j < col && k < high && map[i, j, k] != null)
                         {
-                            matrixLevel[i, j, k] = 1;
+                            if (matrixLevel[i, j, k] == 0)
+                            {
+                                matrixLevel[i, j, k] = 1;
+                            }
+
+                            total++;
                         }
-                        total++;
-                    }
-                    else
-                    {
-                        matrixLevel[i, j, k] = 0;                       
+                        else
+                        {
+                            matrixLevel[i, j, k] = 0;
+                        }
                     }
                 }
             }
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e);
         }
         return total;
     }
@@ -577,6 +587,8 @@ public class MapGenerator : Singleton<MapGenerator>
         {
             totalTile = GetTotalTile();
             valid = totalTile % 3 == 0;
+            LevelManager.Instance.currentLevel = currentLevel;
+            //CheckStatusEachTile();
         }
     }
 
