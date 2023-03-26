@@ -123,6 +123,7 @@ public class MapGenerator : Singleton<MapGenerator>
                     map[i, j, k].transform.localScale = Vector3.one * dis;
                     map[i, j, k].name = "Tile " + i + " " + j + " " + k;
                     map[i, j, k].GetComponent<Tile>().id = 1;
+                    map[i, j, k].GetComponent<Tile>().posInBoard = new Pos(i, j, k);
                     map[i, j, k].GetComponent<SpriteRenderer>().sortingOrder = sOrder += 2;
                     map[i, j, k].transform.localPosition = new Vector3(
                         -((col * 1f - 1) / 2 - j) * dis + dis / 2 * k,
