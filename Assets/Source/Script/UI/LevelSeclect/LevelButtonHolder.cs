@@ -15,6 +15,7 @@ public class LevelButtonHolder : MonoBehaviour
     [ShowInInspector]
     public static int CURRENT_CHAP;
     public Vector2 spacing = new Vector2(50f, 60f);
+    public int totalLevel;
     
     public void Start()
     {
@@ -45,7 +46,7 @@ public class LevelButtonHolder : MonoBehaviour
 
     public void NextChap()
     {
-        var maxChap = MapGenerator.Instance.levelsData.Length / (col * row) + 1;
+        var maxChap = totalLevel / (col * row) + 1;
         if (CURRENT_CHAP == maxChap) return;
         CURRENT_CHAP++;
         RecheckStatusButtonLevel();

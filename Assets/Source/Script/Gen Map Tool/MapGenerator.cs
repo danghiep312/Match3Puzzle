@@ -20,7 +20,7 @@ public class MapGenerator : Singleton<MapGenerator>
     public Tile[,,] tileMap;
     public int[,,] matrixLevel; 
     public List<GameObject> listOfTile;
-    public Level[] levelsData;
+    public int[] levelsData;
 
     [Header("Board data")]
     public GameObject prefab;
@@ -33,6 +33,7 @@ public class MapGenerator : Singleton<MapGenerator>
     public bool valid;
     public int totalTile;
     public bool testing;
+    public bool converting;
     
     //For check lock
     private int[] dirX = { 0, -1, -1, 0 };
@@ -53,7 +54,7 @@ public class MapGenerator : Singleton<MapGenerator>
         }
         
         
-        levelsData = Resources.LoadAll<Level>("Level");
+        levelsData = JsonUtility.FromJson<Difficulty>(Resources.Load<TextAsset>("difficulty").text).difficulty;
         listOfTile = new List<GameObject>();
         int sOrder = 10;
         GetSizeOfBoard();
@@ -65,7 +66,7 @@ public class MapGenerator : Singleton<MapGenerator>
             this.RegisterListener(EventID.Return, (param) => ReturnTile((GameObject)param));
             var dis = GetDistanceEachTile();
             map = new GameObject[row, col, high];
-            matrixLevel = new int[10, 8, 8];
+            matrixLevel = new int[10, 10, 8];
             Debug.Log("init");
             dis = 1;
             for (int k = 0; k < high; k++)
@@ -351,7 +352,8 @@ public class MapGenerator : Singleton<MapGenerator>
         if (!isResume)
         {
             Debug.Log("init");
-            InitTileValue(levelsData[level - 1].difficulty);
+            Debug.Log(levelsData[level]);
+            InitTileValue(levelsData[level]);
             CheckStatusEachTile();
         }
         else
@@ -584,7 +586,7 @@ public class MapGenerator : Singleton<MapGenerator>
 
     private void Update()
     {
-        if (testing)
+        if (testing && !converting)
         {
             totalTile = GetTotalTile();
             valid = totalTile % 3 == 0;
@@ -682,6 +684,16 @@ public class MapGenerator : Singleton<MapGenerator>
 
         return tiles;
     }
+
+    public void SetStatusConvert(int[,,] matrix, int row, int col, int high, int total)
+    {
+        this.row = row;
+        this.col = col;
+        this.high = high;
+        matrixLevel = matrix;
+        totalTile = total;
+        SaveMatrixToFile();
+    }
 }
 
 [Serializable]
@@ -705,7 +717,7 @@ public class CurrentLevelMatrix
     public int[,,] boardMatrix;
     public Pos[] queue;
     public int row, col, high;
-    
+
     public CurrentLevelMatrix(int[,,] boardMatrix, Pos[] queue, int row, int col, int high)
     {
         this.boardMatrix = boardMatrix;
